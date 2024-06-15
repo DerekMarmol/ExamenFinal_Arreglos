@@ -14,33 +14,36 @@ namespace p1final2024
 
         }
 
-        public void Create(Articulo articulo)
+        public int Create(Articulo articulo)
         {
-
+            int nuevoId = -1;
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
                 try
                 {
                     conn.Open();
-                    string query = "INSERT INTO articulos (nombre, descripcion, precio, imagen) VALUES (@nombre, @descripcion, @precio, @imagen)";
+                    string query = "INSERT INTO articulos (nombre, descripcion, precio, imagen) VALUES (@nombre, @descripcion, @precio, @imagen); SELECT LAST_INSERT_ID();";
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@nombre", articulo.Nombre);
                         cmd.Parameters.AddWithValue("@descripcion", articulo.Descripcion);
                         cmd.Parameters.AddWithValue("@precio", articulo.Precio);
                         cmd.Parameters.AddWithValue("@imagen", articulo.Imagen);
-                        cmd.ExecuteNonQuery();
+                        nuevoId = Convert.ToInt32(cmd.ExecuteScalar());
                     }
                 }
                 catch (MySqlException ex)
                 {
                     Console.WriteLine($"Error de MySQL: {ex.Message}");
+                    throw; 
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
+                    throw; 
                 }
             }
+            return nuevoId;
         }
 
         public Articulo Read(int id)
@@ -74,12 +77,12 @@ namespace p1final2024
         public List<Articulo> ReadAll()
         {
             List<Articulo> articulos = new List<Articulo>();
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                try
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    string query = "SELECT * FROM articulos";
+                    string query = "SELECT * FROM articulos ORDER BY id DESC";
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
                         using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -98,14 +101,14 @@ namespace p1final2024
                         }
                     }
                 }
-                catch (MySqlException ex)
-                {
-                    Console.WriteLine($"Error de MySQL: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine($"Error de MySQL: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
             }
             return articulos;
         }
@@ -113,33 +116,55 @@ namespace p1final2024
 
         public void Update(Articulo articulo)
         {
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                string query = "UPDATE articulo SET nombre = @nombre, descripcion = @descripcion, precio = @precio, imagen = @imagen WHERE id = @id";
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    cmd.Parameters.AddWithValue("@nombre", articulo.Nombre);
-                    cmd.Parameters.AddWithValue("@descripcion", articulo.Descripcion);
-                    cmd.Parameters.AddWithValue("@precio", articulo.Precio);
-                    cmd.Parameters.AddWithValue("@image", articulo.Imagen);
-                    cmd.Parameters.AddWithValue("@id", articulo.Id);
-                    cmd.ExecuteNonQuery();
+                    conn.Open();
+                    string query = "UPDATE articulos SET nombre = @nombre, descripcion = @descripcion, precio = @precio, imagen = @imagen WHERE id = @id";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@nombre", articulo.Nombre);
+                        cmd.Parameters.AddWithValue("@descripcion", articulo.Descripcion);
+                        cmd.Parameters.AddWithValue("@precio", articulo.Precio);
+                        cmd.Parameters.AddWithValue("@imagen", articulo.Imagen);
+                        cmd.Parameters.AddWithValue("@id", articulo.Id);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine($"Error de MySQL: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
         public void Delete(int id)
         {
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                string query = "DELETE  articulos WHERE id = @id";
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    cmd.Parameters.AddWithValue("@id", id);
-                    cmd.ExecuteNonQuery();
+                    conn.Open();
+                    string query = "DELETE FROM articulos WHERE id = @id"; 
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine($"Error de MySQL: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
     }

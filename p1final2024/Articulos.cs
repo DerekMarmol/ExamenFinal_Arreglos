@@ -17,18 +17,37 @@ namespace p1final2024
         public Articulos()
         {
             InitializeComponent();
-            dgvArticulo.DataBindingComplete += dgvArticulo_DataBindingComplete; // Suscribe al evento DataBindingComplete
+            dgvArticulo.DataBindingComplete += dgvArticulo_DataBindingComplete; 
             listarArticulos();
         }
 
         private void listarArticulos()
         {
-            dgvArticulo.DataSource = articuloDAO.ReadAll();
+            List<Articulo> articulos = articuloDAO.ReadAll();
+            dgvArticulo.DataSource = null;
+            dgvArticulo.DataSource = new BindingList<Articulo>(articulos);
+
+            dgvArticulo.Refresh();
+            dgvArticulo.Update();
+            Application.DoEvents();
+
+            if (dgvArticulo.Columns.Contains("Imagen"))
+            {
+                dgvArticulo.Columns["Imagen"].Visible = false;
+            }
         }
+
+        private void LimpiarCampos()
+        {
+            txtNombre.Clear();
+            TxtDescripcion.Clear();
+            txtPrecio.Clear();
+            pcbImagen.Image = null;
+        }
+
 
         private void dgvArticulo_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
-            // Oculta la columna "image" solo si existe en el DataGridView
             if (dgvArticulo.Columns.Contains("image"))
             {
                 dgvArticulo.Columns["image"].Visible = false;
@@ -46,10 +65,8 @@ namespace p1final2024
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    // Obtener la ruta completa del archivo seleccionado
                     string archivoSeleccionado = openFileDialog.FileName;
 
-                    // Cargar la imagen en el PictureBox
                     pcbImagen.Image = Image.FromFile(archivoSeleccionado);
                 }
             }
@@ -63,17 +80,34 @@ namespace p1final2024
 
         private void guardarNuevo()
         {
-            Articulo articulo = new Articulo
+            try
             {
-                Nombre = txtNombre.Text,
-                Descripcion = TxtDescripcion.Text,
-                Precio = Convert.ToDecimal(txtPrecio.Text),
-                Imagen = null // Asegúrate de manejar correctamente la carga de la imagen
-            };
+                Articulo articulo = new Articulo
+                {
+                    Nombre = txtNombre.Text,
+                    Descripcion = TxtDescripcion.Text,
+                    Precio = Convert.ToDecimal(txtPrecio.Text),
+                    Imagen = obtenerImagen()
+                };
 
-            articuloDAO.Create(articulo);
-            listarArticulos(); // Vuelve a cargar los datos después de guardar
+                int nuevoId = articuloDAO.Create(articulo);
+                if (nuevoId > 0)
+                {
+                    MessageBox.Show($"El artículo se guardó correctamente con el ID: {nuevoId}", "Guardar Artículo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    listarArticulos();
+                    LimpiarCampos();
+                }
+                else
+                {
+                    MessageBox.Show("No se pudo guardar el artículo.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al guardar el artículo: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
 
         private byte[] obtenerImagen()
         {
