@@ -22,7 +22,7 @@ namespace p1final2024
         private void listarArticulos()
         {
             dgvArticulo.DataSource = articulodAO.ReadAll();
-            dgvArticulos.Columns["image"].Visible = false;
+            dgvArticulo.Columns["image"].Visible = false;
         }
 
         private void btnBuscar_Click(object sender, EventArgs e)
