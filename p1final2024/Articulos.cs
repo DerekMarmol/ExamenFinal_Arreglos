@@ -13,16 +13,26 @@ namespace p1final2024
     public partial class Articulos : Form
     {
         ArticuloDAO articuloDAO = new ArticuloDAO();
+
         public Articulos()
         {
             InitializeComponent();
+            dgvArticulo.DataBindingComplete += dgvArticulo_DataBindingComplete; // Suscribe al evento DataBindingComplete
             listarArticulos();
         }
 
         private void listarArticulos()
         {
-            dgvArticulo.DataSource = articulodAO.ReadAll();
-            dgvArticulo.Columns["image"].Visible = false;
+            dgvArticulo.DataSource = articuloDAO.ReadAll();
+        }
+
+        private void dgvArticulo_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            // Oculta la columna "image" solo si existe en el DataGridView
+            if (dgvArticulo.Columns.Contains("image"))
+            {
+                dgvArticulo.Columns["image"].Visible = false;
+            }
         }
 
         private void btnBuscar_Click(object sender, EventArgs e)
@@ -36,17 +46,19 @@ namespace p1final2024
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    // Obtiene la ruta completa del archivo seleccionado
+                    // Obtener la ruta completa del archivo seleccionado
+                    string archivoSeleccionado = openFileDialog.FileName;
 
-                    // Carga la imagen en el PictureBox
+                    // Cargar la imagen en el PictureBox
+                    pcbImagen.Image = Image.FromFile(archivoSeleccionado);
                 }
             }
         }
 
+
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             guardarNuevo();
-            listarArticulos();
         }
 
         private void guardarNuevo()
@@ -56,10 +68,11 @@ namespace p1final2024
                 Nombre = txtNombre.Text,
                 Descripcion = TxtDescripcion.Text,
                 Precio = Convert.ToDecimal(txtPrecio.Text),
-                Imagen = null
+                Imagen = null // Asegúrate de manejar correctamente la carga de la imagen
             };
 
             articuloDAO.Create(articulo);
+            listarArticulos(); // Vuelve a cargar los datos después de guardar
         }
 
         private byte[] obtenerImagen()
@@ -69,6 +82,7 @@ namespace p1final2024
                 MessageBox.Show("Por favor, selecciona una imagen.");
                 return null;
             }
+
             byte[] imagenBytes;
             using (var ms = new System.IO.MemoryStream())
             {
@@ -78,6 +92,5 @@ namespace p1final2024
             return imagenBytes;
         }
 
-        
     }
 }

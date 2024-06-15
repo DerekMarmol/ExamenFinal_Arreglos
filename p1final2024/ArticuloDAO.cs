@@ -6,7 +6,8 @@ namespace p1final2024
 {
     public class ArticuloDAO
     {
-           string connectionString = "server=sql5.freesqldatabase.com;" + "user=sql5712512;" + "database=sql5712512;" + "port=3306;" + "password=rUpYP1VwYa";
+        string connectionString = "server=sql5.freesqldatabase.com;user=sql5712512;database=sql5712512;port=3306;password=rUpYP1VwYa";
+
 
         public ArticuloDAO()
         {
@@ -75,28 +76,40 @@ namespace p1final2024
             List<Articulo> articulos = new List<Articulo>();
             using (MySqlConnection conn = new MySqlConnection(connectionString))
             {
-                conn.Open();
-                string query = "SELECT * FROM articulos";
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                try
                 {
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    conn.Open();
+                    string query = "SELECT * FROM articulos";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
-                        while (reader.Read())
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
                         {
-                            articulos.Add(new Articulo
+                            while (reader.Read())
                             {
-                                Id = reader.GetInt32("id"),
-                                Nombre = reader.GetString("nombre"),
-                                Descripcion = reader.GetString("descripcion"),
-                                Precio = reader.GetDecimal("precio"),
-                                Imagen = reader["imagen"] as byte[]
-                            });
+                                articulos.Add(new Articulo
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Nombre = reader.GetString("nombre"),
+                                    Descripcion = reader.GetString("descripcion"),
+                                    Precio = reader.GetDecimal("precio"),
+                                    Imagen = reader["imagen"] as byte[]
+                                });
+                            }
                         }
                     }
+                }
+                catch (MySqlException ex)
+                {
+                    Console.WriteLine($"Error de MySQL: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
                 }
             }
             return articulos;
         }
+
 
         public void Update(Articulo articulo)
         {
